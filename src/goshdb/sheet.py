@@ -9,7 +9,7 @@ from openpyxl.utils.cell import column_index_from_string
 
 
 class Sheet:
-    def __init__(self, secret_dir: Path, spreadsheet_id: str, sheet_name: str, header: list[str]):
+    def __init__(self, secret_dir: Path, spreadsheet_id: str, sheet_name: str, header: list[str], exists_ok: bool):
         self.secret_dir = secret_dir
         self.spreadsheet_id = spreadsheet_id
         self.sheet_name = sheet_name
@@ -57,9 +57,11 @@ class Sheet:
         else:
             return None
 
-    def __ensure_sheet_exist_and_get_id(self) -> id:
+    def __ensure_sheet_exist_and_get_id(self, exists_ok: bool) -> id:
         sheet_id = self.__try_get_sheet_id()
         if sheet_id is not None:
+            if not exists_ok:
+                raise ValueError(f'Sheet {self.sheet_name} already exists')
             return sheet_id
 
         # Create the sheet
@@ -172,3 +174,13 @@ class Sheet:
             ]
         }
         self.spreadsheets.batchUpdate(spreadsheetId=self.spreadsheet_id, body=body).execute()
+
+    def delete_sheet(self):
+        body = {
+            'requests': {
+                'deleteSheet': {
+                    'sheetID': self.sheet_id
+                }
+            }
+        }
+        self.spreadsheets.batchUpdate(self.spreadsheet_id, body=body)

@@ -6,7 +6,7 @@ from goshdb.sheet import Sheet
 
 
 class Table:
-    def __init__(self, secret_dir: Path, spreadsheet_id: str, sheet_name: str):
+    def __init__(self, secret_dir: Path, spreadsheet_id: str, sheet_name: str, exists_ok: bool = True):
         """
         Class that represents a table. See README.md for more details.
 
@@ -17,7 +17,8 @@ class Table:
         self.sheet = Sheet(secret_dir=secret_dir,
                            spreadsheet_id=spreadsheet_id,
                            sheet_name=sheet_name,
-                           header=['key', 'value'])
+                           header=['key', 'value'],
+                           exists_ok=exists_ok)
         self.keys_cache: list = []
 
     def has_key(self, key: str) -> bool:
@@ -91,6 +92,9 @@ class Table:
     def set_object(self, key: str, obj: object) -> None:
         value = json.dumps(obj)
         self.set_string(key, value)
+
+    def drop(self):
+        self.sheet.delete_sheet()
 
     @staticmethod
     def __key_index_to_row_number(key_index: int) -> int:
